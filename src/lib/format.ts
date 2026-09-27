@@ -11,6 +11,20 @@ export function formatRelativeDate(iso: string): string {
   return date.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/**
+ * Returns the URL only if it is a well-formed http(s) link, so the UI never
+ * renders an "Apply / View" button that leads nowhere.
+ */
+export function getExternalUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : null;
+  } catch {
+    return null;
+  }
+}
+
 export function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-ZA", {
     day: "numeric",

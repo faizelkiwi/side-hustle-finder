@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { Bookmark, BookmarkCheck, ExternalLink } from "lucide-react";
 import { useSavedOpportunitiesStore } from "@/lib/store/savedOpportunities";
+import { getExternalUrl } from "@/lib/format";
 import type { OpportunityStatus } from "@/lib/types";
 
 const STATUS_OPTIONS: OpportunityStatus[] = ["Interested", "Applied", "Interview", "Accepted", "Rejected", "Archived"];
 
-export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId: string; sourceUrl: string }) {
+export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId: string; sourceUrl: string | null }) {
+  const externalUrl = getExternalUrl(sourceUrl);
   const isSaved = useSavedOpportunitiesStore((s) => s.isSaved(opportunityId));
   const meta = useSavedOpportunitiesStore((s) => s.saved[opportunityId]);
   const toggleSave = useSavedOpportunitiesStore((s) => s.toggleSave);
@@ -18,14 +20,20 @@ export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId
   return (
     <div className="space-y-4 rounded-xl border border-border bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row">
-        <a
-          href={sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
-        >
-          Apply / View Opportunity <ExternalLink size={15} />
-        </a>
+        {externalUrl ? (
+          <a
+            href={externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
+          >
+            Apply / View Opportunity <ExternalLink size={15} />
+          </a>
+        ) : (
+          <p className="inline-flex flex-1 items-center justify-center rounded-lg bg-gray-50 px-4 py-2.5 text-center text-sm text-muted">
+            No verified link available for this listing
+          </p>
+        )}
         <button
           onClick={() => toggleSave(opportunityId)}
           className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"

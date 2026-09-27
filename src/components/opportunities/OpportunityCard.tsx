@@ -5,13 +5,14 @@ import { Bookmark, BookmarkCheck, ExternalLink, MapPin, Wifi, Clock } from "luci
 import type { EnrichedOpportunity } from "@/lib/types";
 import { useSavedOpportunitiesStore } from "@/lib/store/savedOpportunities";
 import { useSettingsStore, formatCurrencyFromZAR } from "@/lib/store/settings";
-import { formatRelativeDate } from "@/lib/format";
+import { formatRelativeDate, getExternalUrl } from "@/lib/format";
 import { CategoryBadge, CostTierBadge, RiskBadge, ScoreBadge } from "@/components/ui/Badges";
 
 export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportunity }) {
   const isSaved = useSavedOpportunitiesStore((s) => s.isSaved(opportunity.id));
   const toggleSave = useSavedOpportunitiesStore((s) => s.toggleSave);
   const currency = useSettingsStore((s) => s.currency);
+  const externalUrl = getExternalUrl(opportunity.sourceUrl);
 
   return (
     <div className="flex flex-col rounded-xl border border-border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
@@ -86,14 +87,16 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
           >
             Details
           </Link>
-          <a
-            href={opportunity.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-brand-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
-          >
-            View <ExternalLink size={12} />
-          </a>
+          {externalUrl && (
+            <a
+              href={externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-brand-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+            >
+              View <ExternalLink size={12} />
+            </a>
+          )}
         </div>
       </div>
     </div>

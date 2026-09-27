@@ -79,7 +79,7 @@ export interface Opportunity {
   lastChecked: string; // ISO date
   isActive: boolean;
   sourceName: string;
-  sourceUrl: string;
+  sourceUrl: string | null; // null when there is no verified public page to link to
   trustScore: number; // 0-100, quality/reliability of the source
   scamSignals: ScamSignal[];
   partTime: boolean;

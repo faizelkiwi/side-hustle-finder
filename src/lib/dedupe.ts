@@ -15,7 +15,7 @@ export function deduplicateOpportunities(opportunities: Opportunity[]): Opportun
 
   for (const opp of opportunities) {
     const key = `${normalize(opp.title)}|${normalize(opp.company)}|${normalize(opp.city ?? opp.country)}`;
-    const urlKey = `url:${normalize(opp.sourceUrl)}`;
+    const urlKey = `url:${normalize(opp.sourceUrl ?? "")}`;
     const existingKey = groups.has(key) ? key : groups.has(urlKey) ? urlKey : key;
     const bucket = groups.get(existingKey) ?? [];
     bucket.push(opp);
