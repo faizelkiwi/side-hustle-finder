@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Briefcase } from "lucide-react";
 import clsx from "clsx";
 import { NAV_ITEMS } from "./navItems";
+import { AccountPanel } from "./AccountPanel";
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -43,6 +44,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           );
         })}
       </nav>
+
+      <AccountPanel onNavigate={onNavigate} />
 
       <div className="mx-3 mb-4 rounded-lg border border-border bg-gray-50 p-3">
         <p className="text-xs font-medium text-foreground">Due-diligence reminder</p>

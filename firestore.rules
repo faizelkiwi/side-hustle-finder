@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // A signed-in user can only read and write their own saved opportunities.
+    match /users/{userId}/savedOpportunities/{opportunityId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.opportunityId == opportunityId
+        && request.resource.data.status in ['Interested', 'Applied', 'Interview', 'Accepted', 'Rejected', 'Archived']
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 5000
+        && request.resource.data.expectedEarnings is string
+        && request.resource.data.expectedEarnings.size() <= 200
+        && request.resource.data.actualEarnings is string
+        && request.resource.data.actualEarnings.size() <= 200;
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

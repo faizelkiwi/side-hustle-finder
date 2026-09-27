@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useAuthStore } from "@/lib/store/auth";
 import { Bookmark, BookmarkCheck, ExternalLink } from "lucide-react";
 import { useSavedOpportunitiesStore } from "@/lib/store/savedOpportunities";
 import { getExternalUrl } from "@/lib/format";
@@ -10,6 +12,8 @@ const STATUS_OPTIONS: OpportunityStatus[] = ["Interested", "Applied", "Interview
 
 export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId: string; sourceUrl: string | null }) {
   const externalUrl = getExternalUrl(sourceUrl);
+  const authStatus = useAuthStore((s) => s.status);
+  const syncError = useSavedOpportunitiesStore((s) => s.syncError);
   const isSaved = useSavedOpportunitiesStore((s) => s.isSaved(opportunityId));
   const meta = useSavedOpportunitiesStore((s) => s.saved[opportunityId]);
   const toggleSave = useSavedOpportunitiesStore((s) => s.toggleSave);
@@ -42,6 +46,17 @@ export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId
           {isSaved ? "Saved to My Opportunities" : "Save Opportunity"}
         </button>
       </div>
+
+      {isSaved && authStatus === "signedOut" && (
+        <p className="text-xs text-muted">
+          Saved in this browser only.{" "}
+          <Link href={`/login?next=/opportunities/${opportunityId}`} className="font-medium text-brand-600 hover:text-brand-700">
+            Sign in
+          </Link>{" "}
+          to keep it on all your devices.
+        </p>
+      )}
+      {syncError && <p className="text-xs text-danger-700">{syncError}</p>}
 
       {isSaved && meta && (
         <div className="space-y-3 border-t border-border pt-4">
