@@ -57,7 +57,7 @@ export function AuthSync() {
         }
         return;
       }
-      setAuth("signedIn", user.email);
+      setAuth("signedIn", { uid: user.uid, email: user.email });
       void loadAccount(user.uid);
     });
   }, []);

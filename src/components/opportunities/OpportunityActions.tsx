@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuthStore } from "@/lib/store/auth";
 import { Bookmark, BookmarkCheck, ExternalLink } from "lucide-react";
 import { useSavedOpportunitiesStore } from "@/lib/store/savedOpportunities";
+import { useToggleSave } from "@/components/account/useToggleSave";
+import { FREE_SAVE_LIMIT } from "@/lib/plans";
 import { getExternalUrl } from "@/lib/format";
 import type { OpportunityStatus } from "@/lib/types";
 
@@ -12,11 +13,9 @@ const STATUS_OPTIONS: OpportunityStatus[] = ["Interested", "Applied", "Interview
 
 export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId: string; sourceUrl: string | null }) {
   const externalUrl = getExternalUrl(sourceUrl);
-  const authStatus = useAuthStore((s) => s.status);
   const syncError = useSavedOpportunitiesStore((s) => s.syncError);
-  const isSaved = useSavedOpportunitiesStore((s) => s.isSaved(opportunityId));
+  const { isSaved, limitReached, toggle } = useToggleSave(opportunityId);
   const meta = useSavedOpportunitiesStore((s) => s.saved[opportunityId]);
-  const toggleSave = useSavedOpportunitiesStore((s) => s.toggleSave);
   const updateMeta = useSavedOpportunitiesStore((s) => s.updateMeta);
   const setStatus = useSavedOpportunitiesStore((s) => s.setStatus);
   const [notesDraft, setNotesDraft] = useState(meta?.notes ?? "");
@@ -39,21 +38,22 @@ export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId
           </p>
         )}
         <button
-          onClick={() => toggleSave(opportunityId)}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          onClick={toggle}
+          disabled={limitReached}
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSaved ? <BookmarkCheck size={16} className="text-brand-600" /> : <Bookmark size={16} />}
           {isSaved ? "Saved to My Opportunities" : "Save Opportunity"}
         </button>
       </div>
 
-      {isSaved && authStatus === "signedOut" && (
+      {limitReached && (
         <p className="text-xs text-muted">
-          Saved in this browser only.{" "}
-          <Link href={`/login?next=/opportunities/${opportunityId}`} className="font-medium text-brand-600 hover:text-brand-700">
-            Sign in
+          You&apos;ve saved {FREE_SAVE_LIMIT} opportunities, the Free plan limit.{" "}
+          <Link href="/billing" className="font-medium text-brand-600 hover:text-brand-700">
+            Upgrade to Pro
           </Link>{" "}
-          to keep it on all your devices.
+          for unlimited saves, or remove one from My Opportunities.
         </p>
       )}
       {syncError && <p className="text-xs text-danger-700">{syncError}</p>}

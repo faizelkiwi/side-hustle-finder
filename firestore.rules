@@ -17,6 +17,13 @@ service cloud.firestore {
         && request.resource.data.actualEarnings.size() <= 200;
     }
 
+    // Plan and billing state. Written only by the server (Admin SDK bypasses
+    // these rules) so users can't grant themselves Pro.
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+
     // Everything else is closed.
     match /{document=**} {
       allow read, write: if false;

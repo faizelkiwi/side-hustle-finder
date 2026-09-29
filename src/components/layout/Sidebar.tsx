@@ -6,13 +6,16 @@ import { Briefcase } from "lucide-react";
 import clsx from "clsx";
 import { NAV_ITEMS } from "./navItems";
 import { AccountPanel } from "./AccountPanel";
+import { useAccount } from "@/components/account/AccountProvider";
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const account = useAccount();
+  const isPro = account?.plan === "pro";
 
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="flex items-center gap-2 px-5 py-5">
+      <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-2 px-5 py-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-white">
           <Briefcase size={18} />
         </div>
@@ -20,11 +23,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <p className="text-sm font-semibold leading-tight text-foreground">Side Hustle Finder</p>
           <p className="text-xs leading-tight text-muted">Daily Intelligence Dashboard</p>
         </div>
-      </div>
+      </Link>
 
-      <nav className="flex-1 space-y-1 px-3 py-2">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
         {NAV_ITEMS.map((item) => {
-          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
           return (
             <Link
@@ -39,7 +42,12 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               )}
             >
               <Icon size={18} className={active ? "text-brand-600" : "text-gray-400"} />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.pro && !isPro && (
+                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700">
+                  Pro
+                </span>
+              )}
             </Link>
           );
         })}

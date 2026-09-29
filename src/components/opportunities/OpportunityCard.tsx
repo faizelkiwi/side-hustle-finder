@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { Bookmark, BookmarkCheck, ExternalLink, MapPin, Wifi, Clock } from "lucide-react";
 import type { EnrichedOpportunity } from "@/lib/types";
-import { useSavedOpportunitiesStore } from "@/lib/store/savedOpportunities";
+import { useRouter } from "next/navigation";
+import { useToggleSave } from "@/components/account/useToggleSave";
 import { useSettingsStore, formatCurrencyFromZAR } from "@/lib/store/settings";
 import { formatRelativeDate, getExternalUrl } from "@/lib/format";
 import { CategoryBadge, CostTierBadge, RiskBadge, ScoreBadge } from "@/components/ui/Badges";
 
 export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportunity }) {
-  const isSaved = useSavedOpportunitiesStore((s) => s.isSaved(opportunity.id));
-  const toggleSave = useSavedOpportunitiesStore((s) => s.toggleSave);
+  const router = useRouter();
+  const { isSaved, limitReached, toggle } = useToggleSave(opportunity.id);
   const currency = useSettingsStore((s) => s.currency);
   const externalUrl = getExternalUrl(opportunity.sourceUrl);
 
@@ -26,8 +27,9 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
           <p className="mt-0.5 truncate text-xs text-muted">{opportunity.company}</p>
         </div>
         <button
-          onClick={() => toggleSave(opportunity.id)}
-          aria-label={isSaved ? "Remove from saved" : "Save opportunity"}
+          onClick={() => (limitReached ? router.push("/billing") : toggle())}
+          aria-label={isSaved ? "Remove from saved" : limitReached ? "Save limit reached - upgrade to Pro" : "Save opportunity"}
+          title={limitReached ? "Free plan save limit reached - upgrade to Pro" : undefined}
           className="shrink-0 rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-brand-600"
         >
           {isSaved ? <BookmarkCheck size={18} className="text-brand-600" /> : <Bookmark size={18} />}

@@ -3,16 +3,12 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
-import { StoreHydrator } from "./StoreHydrator";
-import { AuthSync } from "./AuthSync";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen">
-      <StoreHydrator />
-      <AuthSync />
       <aside className="hidden w-64 shrink-0 border-r border-border md:block">
         <div className="sticky top-0 h-screen">
           <Sidebar />
