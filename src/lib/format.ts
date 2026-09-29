@@ -35,6 +35,25 @@ export function formatDateTime(iso: string): string {
   });
 }
 
+export type DateOrder = "newest" | "oldest";
+
+/**
+ * Sorts by posted date (newest or oldest first). Ties fall back to id so the
+ * order is stable across refreshes.
+ */
+export function sortByPostedDate<T extends { datePosted: string; id: string }>(items: T[], order: DateOrder = "newest"): T[] {
+  const direction = order === "newest" ? -1 : 1;
+  return [...items].sort((a, b) => {
+    const diff = new Date(a.datePosted).getTime() - new Date(b.datePosted).getTime();
+    return diff !== 0 ? diff * direction : a.id.localeCompare(b.id);
+  });
+}
+
+/** Posted within the last 24 hours. */
+export function isNew(iso: string): boolean {
+  return Date.now() - new Date(iso).getTime() < 24 * 60 * 60 * 1000;
+}
+
 export function isWithinDays(iso: string, days: number): boolean {
   const diffMs = Date.now() - new Date(iso).getTime();
   return diffMs <= days * 24 * 60 * 60 * 1000;

@@ -1,4 +1,16 @@
-export type SortOption = "relevant" | "newest" | "lowest-cost" | "highest-income" | "highest-trust";
+export type SortOption = "relevant" | "newest" | "oldest" | "lowest-cost" | "highest-income" | "highest-trust";
+
+export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "relevant", label: "Most relevant" },
+  { value: "lowest-cost", label: "Lowest startup cost" },
+  { value: "highest-income", label: "Highest estimated income" },
+  { value: "highest-trust", label: "Highest trust score" },
+];
+
+export const isSortOption = (value: string | null): value is SortOption =>
+  SORT_OPTIONS.some((o) => o.value === value);
 
 export interface OpportunityFilters {
   keyword: string;
@@ -38,7 +50,7 @@ export function defaultFilters(overrides?: Partial<OpportunityFilters>): Opportu
     freelance: false,
     contract: false,
     hideHighRisk: false,
-    sort: "relevant",
+    sort: "newest",
     ...overrides,
   };
 }

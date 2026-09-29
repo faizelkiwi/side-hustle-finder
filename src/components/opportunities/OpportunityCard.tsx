@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, BookmarkCheck, ExternalLink, MapPin, Wifi, Clock } from "lucide-react";
+import { Bookmark, BookmarkCheck, ExternalLink, MapPin, Wifi, Clock, CalendarClock } from "lucide-react";
 import type { EnrichedOpportunity } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useToggleSave } from "@/components/account/useToggleSave";
 import { useSettingsStore, formatCurrencyFromZAR } from "@/lib/store/settings";
-import { formatRelativeDate, getExternalUrl } from "@/lib/format";
+import { formatDateTime, formatRelativeDate, getExternalUrl, isNew, isWithinDays } from "@/lib/format";
 import { CategoryBadge, CostTierBadge, RiskBadge, ScoreBadge } from "@/components/ui/Badges";
 
 export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportunity }) {
@@ -25,6 +25,7 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
             </h3>
           </Link>
           <p className="mt-0.5 truncate text-xs text-muted">{opportunity.company}</p>
+          <PostedDate iso={opportunity.datePosted} />
         </div>
         <button
           onClick={() => (limitReached ? router.push("/billing") : toggle())}
@@ -80,7 +81,7 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
           <span className="font-medium text-foreground">
             {formatCurrencyFromZAR(opportunity.startupCostZAR, currency)}
           </span>{" "}
-          to start · {formatRelativeDate(opportunity.datePosted)}
+          to start
         </div>
         <div className="mt-2.5 flex items-center gap-2">
           <Link
@@ -102,5 +103,26 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
         </div>
       </div>
     </div>
+  );
+}
+
+/** "Posted 3h ago · 29 Sep 2026, 14:05" with a New badge for the last 24 hours. */
+function PostedDate({ iso }: { iso: string }) {
+  // formatRelativeDate already returns a plain date after 7 days; only prefix it for recent posts.
+  const absolute = formatDateTime(iso);
+  const label = isWithinDays(iso, 7) ? `${formatRelativeDate(iso)} · ${absolute}` : absolute;
+  return (
+    <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs font-medium text-gray-700">
+      <CalendarClock size={13} className="shrink-0 text-brand-600" />
+      {/* Relative time depends on the viewer's clock, so server and browser can differ by a minute. */}
+      <time dateTime={iso} suppressHydrationWarning>
+        Posted {label}
+      </time>
+      {isNew(iso) && (
+        <span className="rounded-full bg-success-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success-700">
+          New
+        </span>
+      )}
+    </p>
   );
 }

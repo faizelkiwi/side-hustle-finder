@@ -1,15 +1,7 @@
 "use client";
 
 import { ALL_CATEGORIES } from "@/lib/categories";
-import type { OpportunityFilters, SortOption } from "./types";
-
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "relevant", label: "Most Relevant" },
-  { value: "newest", label: "Newest First" },
-  { value: "lowest-cost", label: "Lowest Startup Cost" },
-  { value: "highest-income", label: "Highest Estimated Income" },
-  { value: "highest-trust", label: "Highest Trust Score" },
-];
+import { SORT_OPTIONS, type OpportunityFilters, type SortOption } from "./types";
 
 const EXPERIENCE_OPTIONS = [
   { value: "any", label: "Any experience level" },

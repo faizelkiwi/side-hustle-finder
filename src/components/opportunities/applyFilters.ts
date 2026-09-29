@@ -1,5 +1,5 @@
 import type { EnrichedOpportunity } from "@/lib/types";
-import { isWithinDays } from "@/lib/format";
+import { isWithinDays, sortByPostedDate } from "@/lib/format";
 import type { OpportunityFilters } from "./types";
 
 const EXPERIENCE_MAP: Record<Exclude<OpportunityFilters["experience"], "any">, string> = {
@@ -35,10 +35,12 @@ export function applyFilters(opportunities: EnrichedOpportunity[], filters: Oppo
     return true;
   });
 
+  if (filters.sort === "newest" || filters.sort === "oldest") {
+    return sortByPostedDate(result, filters.sort);
+  }
+
   result = [...result].sort((a, b) => {
     switch (filters.sort) {
-      case "newest":
-        return new Date(b.datePosted).getTime() - new Date(a.datePosted).getTime();
       case "lowest-cost":
         return a.startupCostZAR - b.startupCostZAR;
       case "highest-income":

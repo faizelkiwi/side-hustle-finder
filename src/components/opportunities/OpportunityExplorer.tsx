@@ -10,13 +10,14 @@ import { FilterPanel } from "@/components/opportunities/FilterPanel";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { applyFilters } from "./applyFilters";
-import { defaultFilters, type SortOption } from "./types";
+import { SORT_OPTIONS, defaultFilters, isSortOption, type SortOption } from "./types";
 
 const PAGE_SIZE = 9;
 
 export function OpportunityExplorer({ opportunities }: { opportunities: EnrichedOpportunity[] }) {
   const searchParams = useSearchParams();
-  const initialSort = (searchParams.get("sort") as SortOption) || "relevant";
+  const sortParam = searchParams.get("sort");
+  const initialSort: SortOption = isSortOption(sortParam) ? sortParam : "newest";
 
   const [filters, setFilters] = useState(() =>
     defaultFilters({ sort: initialSort, maxStartupCost: useSettingsStore.getState().startupCostThresholdZAR }),
@@ -92,9 +93,25 @@ export function OpportunityExplorer({ opportunities }: { opportunities: Enriched
       )}
 
       <div className="space-y-4">
-        <p className="text-sm text-muted">
-          <span className="font-medium text-foreground">{filtered.length}</span> opportunities match your filters
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted">
+            <span className="font-medium text-foreground">{filtered.length}</span> opportunities match your filters
+          </p>
+          <label className="flex items-center gap-2 text-sm text-muted">
+            Sort by
+            <select
+              value={filters.sort}
+              onChange={(e) => updateFilters({ sort: e.target.value as SortOption })}
+              className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-foreground shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         {pageItems.length === 0 ? (
           <EmptyState
