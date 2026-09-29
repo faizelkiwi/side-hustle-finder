@@ -1,3 +1,12 @@
+// Dates are shown in South African time everywhere. Without a fixed zone,
+// server-rendered pages would use the host's clock (UTC on Vercel).
+export const APP_TIME_ZONE = "Africa/Johannesburg";
+
+/** "29 Sept 2026" (or "29 September 2026" with month: "long") in South African time. */
+export function formatDate(iso: string, month: "short" | "long" = "short"): string {
+  return new Date(iso).toLocaleDateString("en-ZA", { day: "numeric", month, year: "numeric", timeZone: APP_TIME_ZONE });
+}
+
 export function formatRelativeDate(iso: string): string {
   const date = new Date(iso);
   const diffMs = Date.now() - date.getTime();
@@ -8,7 +17,7 @@ export function formatRelativeDate(iso: string): string {
   if (diffHours < 24) return `${Math.floor(diffHours)}h ago`;
   if (diffDays < 2) return "Yesterday";
   if (diffDays < 7) return `${Math.floor(diffDays)}d ago`;
-  return date.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+  return formatDate(iso);
 }
 
 /**
@@ -32,6 +41,7 @@ export function formatDateTime(iso: string): string {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: APP_TIME_ZONE,
   });
 }
 

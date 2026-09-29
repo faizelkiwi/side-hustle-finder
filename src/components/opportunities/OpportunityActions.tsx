@@ -6,7 +6,7 @@ import { Bookmark, BookmarkCheck, ExternalLink } from "lucide-react";
 import { useSavedOpportunitiesStore } from "@/lib/store/savedOpportunities";
 import { useToggleSave } from "@/components/account/useToggleSave";
 import { FREE_SAVE_LIMIT } from "@/lib/plans";
-import { getExternalUrl } from "@/lib/format";
+import { formatDate, getExternalUrl } from "@/lib/format";
 import type { OpportunityStatus } from "@/lib/types";
 
 const STATUS_OPTIONS: OpportunityStatus[] = ["Interested", "Applied", "Interview", "Accepted", "Rejected", "Archived"];
@@ -112,7 +112,7 @@ export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId
 
           {meta.applicationDate && (
             <p className="text-xs text-muted">
-              Applied on {new Date(meta.applicationDate).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
+              Applied on {formatDate(meta.applicationDate)}
             </p>
           )}
         </div>

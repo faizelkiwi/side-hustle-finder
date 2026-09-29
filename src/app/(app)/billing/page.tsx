@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { requireAccount } from "@/lib/server/session";
 import { getSubscription, isBillingConfigured, syncSubscription } from "@/lib/server/paypal";
 import { PLANS, type PlanId } from "@/lib/plans";
+import { formatDate } from "@/lib/format";
 import { BillingActions } from "@/components/account/BillingActions";
 
 export default async function BillingPage({
@@ -23,7 +24,7 @@ export default async function BillingPage({
   }
 
   const renews = account.currentPeriodEnd
-    ? new Date(account.currentPeriodEnd).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" })
+    ? formatDate(account.currentPeriodEnd, "long")
     : null;
 
   return (
