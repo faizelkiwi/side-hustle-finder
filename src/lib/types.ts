@@ -1,6 +1,6 @@
 // Core domain types for Side Hustle Finder.
-// Kept independent of any single data source so demo data and future
-// live API integrations can share the same shape.
+// Kept independent of any single data source so every job-board connector
+// maps into the same shape.
 
 export type WorkMode = "Remote" | "Hybrid" | "Onsite";
 
@@ -52,6 +52,7 @@ export type OpportunityCategory =
   | "Consulting"
   | "Administrative Work"
   | "Automotive Side Jobs"
+  | "Remote Jobs"
   | "Other";
 
 export interface ScamSignal {
@@ -103,8 +104,16 @@ export type OpportunityStatus =
   | "Rejected"
   | "Archived";
 
+/** What's kept about a saved listing so it still shows after it leaves the live feed. */
+export interface SavedOpportunitySnapshot {
+  title: string;
+  company: string;
+  sourceName: string;
+}
+
 export interface SavedOpportunityMeta {
   opportunityId: string;
+  snapshot?: SavedOpportunitySnapshot;
   savedAt: string;
   status: OpportunityStatus;
   notes: string;

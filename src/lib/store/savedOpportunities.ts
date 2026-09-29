@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { OpportunityStatus, SavedOpportunityMeta } from "../types";
+import type { OpportunityStatus, SavedOpportunityMeta, SavedOpportunitySnapshot } from "../types";
 import { deleteSavedOpportunity, upsertSavedOpportunities } from "../firebase/savedOpportunities";
 
 interface SavedOpportunitiesState {
@@ -11,7 +11,7 @@ interface SavedOpportunitiesState {
   userId: string | null;
   syncError: string | null;
   isSaved: (opportunityId: string) => boolean;
-  toggleSave: (opportunityId: string) => void;
+  toggleSave: (opportunityId: string, snapshot?: SavedOpportunitySnapshot) => void;
   updateMeta: (opportunityId: string, patch: Partial<SavedOpportunityMeta>) => void;
   setStatus: (opportunityId: string, status: OpportunityStatus) => void;
   remove: (opportunityId: string) => void;
@@ -22,9 +22,11 @@ interface SavedOpportunitiesState {
   setSyncError: (message: string | null) => void;
 }
 
-function defaultMeta(opportunityId: string): SavedOpportunityMeta {
+function defaultMeta(opportunityId: string, snapshot?: SavedOpportunitySnapshot): SavedOpportunityMeta {
   return {
     opportunityId,
+    // Firestore rejects undefined fields, so only include the snapshot when there is one.
+    ...(snapshot ? { snapshot } : {}),
     savedAt: new Date().toISOString(),
     status: "Interested",
     notes: "",
@@ -78,14 +80,14 @@ export const useSavedOpportunitiesStore = create<SavedOpportunitiesState>()(
         userId: null,
         syncError: null,
         isSaved: (opportunityId) => Boolean(get().saved[opportunityId]),
-        toggleSave: (opportunityId) => {
+        toggleSave: (opportunityId, snapshot) => {
           const wasSaved = Boolean(get().saved[opportunityId]);
           set((state) => {
             const next = { ...state.saved };
             if (wasSaved) {
               delete next[opportunityId];
             } else {
-              next[opportunityId] = defaultMeta(opportunityId);
+              next[opportunityId] = defaultMeta(opportunityId, snapshot);
             }
             return { saved: next };
           });

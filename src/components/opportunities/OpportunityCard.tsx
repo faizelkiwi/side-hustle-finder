@@ -11,7 +11,7 @@ import { CategoryBadge, CostTierBadge, RiskBadge, ScoreBadge } from "@/component
 
 export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportunity }) {
   const router = useRouter();
-  const { isSaved, limitReached, toggle } = useToggleSave(opportunity.id);
+  const { isSaved, limitReached, toggle } = useToggleSave(opportunity);
   const currency = useSettingsStore((s) => s.currency);
   const externalUrl = getExternalUrl(opportunity.sourceUrl);
 
@@ -24,7 +24,9 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
               {opportunity.title}
             </h3>
           </Link>
-          <p className="mt-0.5 truncate text-xs text-muted">{opportunity.company}</p>
+          <p className="mt-0.5 truncate text-xs text-muted">
+            {opportunity.company} · via <span className="font-medium text-gray-600">{opportunity.sourceName}</span>
+          </p>
           <PostedDate iso={opportunity.datePosted} />
         </div>
         <button
@@ -94,7 +96,7 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
             <a
               href={externalUrl}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener"
               className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-brand-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
             >
               View <ExternalLink size={12} />

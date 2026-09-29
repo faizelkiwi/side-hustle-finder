@@ -3,8 +3,6 @@ import { requireUser } from "@/lib/server/session";
 import { getAllOpportunities } from "@/lib/dataService";
 import { OpportunityExplorer } from "@/components/opportunities/OpportunityExplorer";
 
-export const dynamic = "force-dynamic";
-
 export default async function OpportunitiesPage() {
   await requireUser();
   const opportunities = await getAllOpportunities();

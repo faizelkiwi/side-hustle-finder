@@ -30,9 +30,10 @@ export function MyOpportunitiesBoard({ opportunities }: { opportunities: Enriche
   const opportunityMap = useMemo(() => new Map(opportunities.map((o) => [o.id, o])), [opportunities]);
 
   const savedItems = useMemo(() => {
+    // Listings leave the live feeds when they close; those saves are still
+    // shown (from the snapshot taken when saved) but without a link.
     return Object.values(saved)
       .map((meta) => ({ meta, opportunity: opportunityMap.get(meta.opportunityId) }))
-      .filter((item): item is { meta: (typeof saved)[string]; opportunity: EnrichedOpportunity } => Boolean(item.opportunity))
       .sort((a, b) => new Date(b.meta.savedAt).getTime() - new Date(a.meta.savedAt).getTime());
   }, [saved, opportunityMap]);
 
@@ -76,25 +77,39 @@ export function MyOpportunitiesBoard({ opportunities }: { opportunities: Enriche
       ) : (
         <div className="space-y-3">
           {filtered.map(({ meta, opportunity }) => (
-            <div key={opportunity.id} className="rounded-xl border border-border bg-white p-4 shadow-sm">
+            <div key={meta.opportunityId} className="rounded-xl border border-border bg-white p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <Link href={`/opportunities/${opportunity.id}`} className="text-sm font-semibold text-foreground hover:text-brand-600">
-                    {opportunity.title}
-                  </Link>
+                  {opportunity ? (
+                    <Link href={`/opportunities/${opportunity.id}`} className="text-sm font-semibold text-foreground hover:text-brand-600">
+                      {opportunity.title}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-semibold text-gray-500">{meta.snapshot?.title ?? "Listing no longer available"}</p>
+                  )}
                   <p className="text-xs text-muted">
-                    {opportunity.company} · Saved {formatRelativeDate(meta.savedAt)}
+                    {opportunity?.company ?? meta.snapshot?.company ?? "Unknown company"}
+                    {(opportunity?.sourceName ?? meta.snapshot?.sourceName) && ` · via ${opportunity?.sourceName ?? meta.snapshot?.sourceName}`}
+                    {" "}· Saved {formatRelativeDate(meta.savedAt)}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <RiskBadge level={opportunity.riskLevel} />
-                    <ScoreBadge score={opportunity.opportunityScore} />
+                    {opportunity ? (
+                      <>
+                        <RiskBadge level={opportunity.riskLevel} />
+                        <ScoreBadge score={opportunity.opportunityScore} />
+                      </>
+                    ) : (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                        No longer listed - the job has closed or been filled
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <select
                     value={meta.status}
-                    onChange={(e) => setStatus(opportunity.id, e.target.value as OpportunityStatus)}
+                    onChange={(e) => setStatus(meta.opportunityId, e.target.value as OpportunityStatus)}
                     className="rounded-lg border border-border px-2.5 py-1.5 text-xs focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   >
                     {STATUS_TABS.slice(1).map((s) => (
@@ -104,7 +119,7 @@ export function MyOpportunitiesBoard({ opportunities }: { opportunities: Enriche
                     ))}
                   </select>
                   <button
-                    onClick={() => remove(opportunity.id)}
+                    onClick={() => remove(meta.opportunityId)}
                     aria-label="Remove from saved"
                     className="rounded-lg p-2 text-gray-400 hover:bg-danger-50 hover:text-danger-500"
                   >

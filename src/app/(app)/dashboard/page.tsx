@@ -1,10 +1,6 @@
 import { Briefcase, Wifi, MapPin, Wallet, Star, Clock } from "lucide-react";
 import { requireUser } from "@/lib/server/session";
 import { getAllOpportunities } from "@/lib/dataService";
-
-// Dynamic so the Refresh Opportunities button re-runs connectors on demand
-// once live sources replace the demo data set.
-export const dynamic = "force-dynamic";
 import { isNew } from "@/lib/format";
 import { StatCard } from "@/components/ui/StatCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -44,7 +40,11 @@ export default async function DashboardPage() {
         <SavedCountStat />
         <StatCard
           label="Avg. Opportunity Score"
-          value={Math.round(opportunities.reduce((s, o) => s + o.opportunityScore, 0) / opportunities.length)}
+          value={
+            opportunities.length
+              ? Math.round(opportunities.reduce((s, o) => s + o.opportunityScore, 0) / opportunities.length)
+              : 0
+          }
           icon={Star}
           tone="warning"
         />

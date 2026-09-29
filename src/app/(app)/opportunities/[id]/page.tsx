@@ -94,7 +94,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
 
       <DisclaimerBanner />
 
-      <OpportunityActions opportunityId={opportunity.id} sourceUrl={opportunity.sourceUrl} />
+      <OpportunityActions opportunity={opportunity} />
     </div>
   );
 }

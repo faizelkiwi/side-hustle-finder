@@ -4,8 +4,6 @@ import { NotificationPreferences } from "@/components/alerts/NotificationPrefere
 import { UpgradePrompt } from "@/components/account/UpgradePrompt";
 import { requireAccount } from "@/lib/server/session";
 
-export const dynamic = "force-dynamic";
-
 export default async function AlertsPage() {
   const account = await requireAccount();
   if (account.plan !== "pro") {

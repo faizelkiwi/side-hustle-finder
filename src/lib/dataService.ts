@@ -1,14 +1,15 @@
 import { CONNECTOR_REGISTRY } from "./connectors/registry";
+import { keepLiveListings } from "./connectors/jobMapping";
 import type { ConnectorRunResult } from "./connectors/types";
 import { deduplicateOpportunities } from "./dedupe";
 import { enrichOpportunity } from "./classification";
 import type { DataSource, EnrichedOpportunity } from "./types";
 
 /**
- * Single entry point the UI uses to get opportunity data. Today it fans
- * out to whatever connectors are registered (demo data + disabled API
- * stubs), dedupes, and enriches. When live sources come online this is
- * the only file pages depend on, so nothing above this layer changes.
+ * Single entry point the UI uses to get opportunity data. It fans out to
+ * the registered live job-board connectors (each cached for an hour),
+ * dedupes, drops listings whose job page has gone, and enriches. A source
+ * that fails is skipped so the others still show.
  */
 export async function getAllOpportunities(): Promise<EnrichedOpportunity[]> {
   const results = await Promise.all(
@@ -21,7 +22,8 @@ export async function getAllOpportunities(): Promise<EnrichedOpportunity[]> {
     }),
   );
 
-  const merged = deduplicateOpportunities(results.flat());
+  // Job pages removed since the feed was fetched are dropped, so every link shown is live.
+  const merged = await keepLiveListings(deduplicateOpportunities(results.flat()));
   return merged.map(enrichOpportunity).sort((a, b) => b.opportunityScore - a.opportunityScore);
 }
 

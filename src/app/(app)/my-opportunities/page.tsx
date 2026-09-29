@@ -2,8 +2,6 @@ import { getAllOpportunities } from "@/lib/dataService";
 import { requireUser } from "@/lib/server/session";
 import { MyOpportunitiesBoard } from "@/components/saved/MyOpportunitiesBoard";
 
-export const dynamic = "force-dynamic";
-
 export default async function MyOpportunitiesPage() {
   await requireUser();
   const opportunities = await getAllOpportunities();

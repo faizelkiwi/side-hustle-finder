@@ -3,8 +3,6 @@ import { requireUser } from "@/lib/server/session";
 import { SettingsForm } from "@/components/settings/SettingsForm";
 import { DataSourcesTable } from "@/components/settings/DataSourcesTable";
 
-export const dynamic = "force-dynamic";
-
 export default async function SettingsPage() {
   await requireUser();
   const { sources } = await runConnectorHealthCheck();

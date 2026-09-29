@@ -7,14 +7,19 @@ import { useSavedOpportunitiesStore } from "@/lib/store/savedOpportunities";
 import { useToggleSave } from "@/components/account/useToggleSave";
 import { FREE_SAVE_LIMIT } from "@/lib/plans";
 import { formatDate, getExternalUrl } from "@/lib/format";
-import type { OpportunityStatus } from "@/lib/types";
+import type { Opportunity, OpportunityStatus } from "@/lib/types";
 
 const STATUS_OPTIONS: OpportunityStatus[] = ["Interested", "Applied", "Interview", "Accepted", "Rejected", "Archived"];
 
-export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId: string; sourceUrl: string | null }) {
+export function OpportunityActions({
+  opportunity,
+}: {
+  opportunity: Pick<Opportunity, "id" | "title" | "company" | "sourceName" | "sourceUrl">;
+}) {
+  const { id: opportunityId, sourceUrl } = opportunity;
   const externalUrl = getExternalUrl(sourceUrl);
   const syncError = useSavedOpportunitiesStore((s) => s.syncError);
-  const { isSaved, limitReached, toggle } = useToggleSave(opportunityId);
+  const { isSaved, limitReached, toggle } = useToggleSave(opportunity);
   const meta = useSavedOpportunitiesStore((s) => s.saved[opportunityId]);
   const updateMeta = useSavedOpportunitiesStore((s) => s.updateMeta);
   const setStatus = useSavedOpportunitiesStore((s) => s.setStatus);
@@ -27,7 +32,7 @@ export function OpportunityActions({ opportunityId, sourceUrl }: { opportunityId
           <a
             href={externalUrl}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener"
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"
           >
             Apply / View Opportunity <ExternalLink size={15} />
