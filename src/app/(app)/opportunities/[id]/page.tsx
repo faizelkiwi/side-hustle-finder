@@ -31,7 +31,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
 
         <h1 className="mt-3 text-xl font-semibold text-foreground">{opportunity.title}</h1>
         <p className="mt-1 text-sm text-muted">
-          {opportunity.company} · via {opportunity.sourceName}
+          {opportunity.kind === "platform" ? opportunity.company : `${opportunity.company} · via ${opportunity.sourceName}`}
         </p>
 
         <p className="mt-4 text-sm leading-relaxed text-gray-700">{opportunity.description}</p>
@@ -42,7 +42,11 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
           <InfoRow icon={Wallet} label="Earning potential" value={`${opportunity.earningPotential} (${opportunity.paymentType})`} />
           <InfoRow icon={Wallet} label="Startup cost" value={`R${opportunity.startupCostZAR.toLocaleString()} (${opportunity.startupCostTier})`} />
           <InfoRow icon={GraduationCap} label="Experience required" value={opportunity.experienceLevel} />
-          <InfoRow icon={Calendar} label="Date posted" value={formatDateTime(opportunity.datePosted)} />
+          {opportunity.kind === "platform" ? (
+            <InfoRow icon={Calendar} label="Availability" value="Always open - sign up any time" />
+          ) : (
+            <InfoRow icon={Calendar} label="Date posted" value={formatDateTime(opportunity.datePosted)} />
+          )}
           <InfoRow icon={Globe} label="Source" value={opportunity.sourceName} />
         </div>
 

@@ -55,6 +55,7 @@ export const jobicyConnector: SourceConnector = {
         return {
           ...remoteJobDefaults(),
           id: `jobicy-${j.id}`,
+          kind: "role",
           title: j.jobTitle.trim(),
           company: j.companyName.trim(),
           category: inferCategory(`${j.jobTitle} ${(j.jobIndustry ?? []).join(" ")}`, flags),
@@ -71,6 +72,7 @@ export const jobicyConnector: SourceConnector = {
           ...flags,
         };
       })
-      .filter(isUsable);
+      // Side hustles only: part-time, freelance or contract roles.
+      .filter((o) => isUsable(o) && (o.partTime || o.freelance || o.contract));
   },
 };

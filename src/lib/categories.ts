@@ -26,6 +26,8 @@ export const ALL_CATEGORIES: OpportunityCategory[] = [
   "Consulting",
   "Administrative Work",
   "Automotive Side Jobs",
+  "Online Selling",
+  "Hosting & Rentals",
   "Remote Jobs",
   "Other",
 ];

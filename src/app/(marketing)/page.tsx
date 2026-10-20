@@ -22,8 +22,8 @@ export const metadata = {
 const FEATURES = [
   {
     icon: Search,
-    title: "Every opportunity in one place",
-    body: "Remote, local and freelance work from trusted South African and global job boards, filtered by cost, hours and location.",
+    title: "Side hustles, not job listings",
+    body: "Trusted platforms South Africans can join today - freelancing, tutoring, delivery, selling online - plus fresh paid gigs, refreshed every few minutes.",
   },
   {
     icon: ShieldCheck,
@@ -54,7 +54,7 @@ const FEATURES = [
 
 const STEPS = [
   { title: "Create a free account", body: "Sign up in seconds with Google or your email." },
-  { title: "Find what fits", body: "Filter by startup cost, hours, remote or local, and scam risk." },
+  { title: "Find what fits", body: "Filter platforms, live gigs and part-time roles by cost, skills, remote or local, and scam risk." },
   { title: "Apply and track", body: "Save the best ones and track every application to the finish." },
 ];
 
@@ -88,8 +88,8 @@ export default function LandingPage() {
               Find a side hustle that actually pays, without the scams.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg text-muted">
-              Side Hustle Finder brings together real part-time, freelance and remote work, scores each one for risk and
-              earning potential, and helps you track every application in one place.
+              Side Hustle Finder brings together side-hustle platforms you can join today and fresh freelance gigs, scores
+              each one for risk and earning potential, and helps you track everything you go after in one place.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link

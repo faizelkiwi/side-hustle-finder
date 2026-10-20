@@ -16,7 +16,7 @@ const ORDERS: { value: DateOrder; label: string; icon: typeof ArrowDownWideNarro
 ];
 
 /**
- * Every opportunity by date posted. Defaults to newest first on each page
+ * Live gigs and part-time roles by date posted. Defaults to newest first on each page
  * load; the chosen order is kept when "Refresh Opportunities" re-fetches data.
  */
 export function LatestOpportunities({ opportunities }: { opportunities: EnrichedOpportunity[] }) {
@@ -30,10 +30,10 @@ export function LatestOpportunities({ opportunities }: { opportunities: Enriched
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 id="latest-heading" className="text-lg font-semibold text-foreground">
-            Latest Opportunities
+            Latest Gigs &amp; Roles
           </h2>
           <p className="text-sm text-muted">
-            All {opportunities.length} opportunities by date posted, {order === "newest" ? "newest" : "oldest"} first
+            {opportunities.length} live gigs and part-time roles by date posted, {order === "newest" ? "newest" : "oldest"} first
           </p>
         </div>
         <div className="flex items-center gap-3">

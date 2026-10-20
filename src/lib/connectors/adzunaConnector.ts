@@ -58,6 +58,7 @@ export const adzunaConnector: SourceConnector = {
         const now = new Date().toISOString();
         return {
           id: `adzuna-${j.id}`,
+          kind: "role",
           title: summarize(j.title, 120),
           company: j.company?.display_name?.trim() || "Company not named",
           category: inferCategory(`${j.title} ${j.category?.label ?? ""}`, flags),

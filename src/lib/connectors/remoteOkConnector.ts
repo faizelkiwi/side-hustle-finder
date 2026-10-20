@@ -51,6 +51,7 @@ export const remoteOkConnector: SourceConnector = {
         return {
           ...remoteJobDefaults(),
           id: `remoteok-${j.id}`,
+          kind: "role",
           title: j.position.trim(),
           company: j.company.trim(),
           category: inferCategory(text, flags),
@@ -67,6 +68,7 @@ export const remoteOkConnector: SourceConnector = {
           ...flags,
         };
       })
-      .filter(isUsable);
+      // Side hustles only: part-time, freelance or contract roles.
+      .filter((o) => isUsable(o) && (o.partTime || o.freelance || o.contract));
   },
 };

@@ -29,7 +29,7 @@ interface RemotiveJob {
 /**
  * Remotive public API (https://remotive.com/api/remote-jobs). Remotive asks
  * for a link back to the job on remotive.com and light usage; the feed is
- * cached for an hour.
+ * cached for 10 minutes.
  */
 export const remotiveConnector: SourceConnector = {
   id: "src-remotive",
@@ -38,13 +38,15 @@ export const remotiveConnector: SourceConnector = {
   async fetchOpportunities() {
     const feed = await fetchFeed<{ jobs: RemotiveJob[] }>("https://remotive.com/api/remote-jobs");
     return feed.jobs
-      .filter((j) => openToSouthAfrica(j.candidate_required_location))
+      // Side hustles only: part-time, freelance or contract roles.
+      .filter((j) => j.job_type !== "full_time" && openToSouthAfrica(j.candidate_required_location))
       .map((j): Opportunity => {
         const flags = { partTime: j.job_type === "part_time", freelance: j.job_type === "freelance", contract: j.job_type === "contract" };
         const salary = (j.salary ?? "").trim();
         return {
           ...remoteJobDefaults(),
           id: `remotive-${j.id}`,
+          kind: "role",
           title: j.title.trim(),
           company: j.company_name.trim(),
           category: inferCategory(`${j.title} ${j.category} ${(j.tags ?? []).join(" ")}`, flags),

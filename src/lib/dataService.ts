@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { CONNECTOR_REGISTRY } from "./connectors/registry";
 import { keepLiveListings } from "./connectors/jobMapping";
 import type { ConnectorRunResult } from "./connectors/types";
@@ -5,13 +6,10 @@ import { deduplicateOpportunities } from "./dedupe";
 import { enrichOpportunity } from "./classification";
 import type { DataSource, EnrichedOpportunity } from "./types";
 
-/**
- * Single entry point the UI uses to get opportunity data. It fans out to
- * the registered live job-board connectors (each cached for an hour),
- * dedupes, drops listings whose job page has gone, and enriches. A source
- * that fails is skipped so the others still show.
- */
-export async function getAllOpportunities(): Promise<EnrichedOpportunity[]> {
+/** How often the listing set (feeds + link checks) is rebuilt, in seconds. */
+export const REFRESH_SECONDS = 600;
+
+async function buildOpportunities(): Promise<EnrichedOpportunity[]> {
   const results = await Promise.all(
     CONNECTOR_REGISTRY.map(async (connector) => {
       try {
@@ -22,9 +20,25 @@ export async function getAllOpportunities(): Promise<EnrichedOpportunity[]> {
     }),
   );
 
-  // Job pages removed since the feed was fetched are dropped, so every link shown is live.
+  // Every listing's page is checked and any that has been removed is dropped,
+  // so every link shown is live.
   const merged = await keepLiveListings(deduplicateOpportunities(results.flat()));
   return merged.map(enrichOpportunity).sort((a, b) => b.opportunityScore - a.opportunityScore);
+}
+
+// Built in the background and shared by all visitors: pages get the last
+// checked set instantly, and once it's older than REFRESH_SECONDS Next.js
+// rebuilds it (feeds + link checks) behind the scenes.
+const cachedOpportunities = unstable_cache(buildOpportunities, ["opportunities-v2"], { revalidate: REFRESH_SECONDS });
+
+/**
+ * Single entry point the UI uses to get opportunity data: side-hustle
+ * platforms, live gigs and part-time roles from every registered connector,
+ * deduped, link-checked and enriched. A source that fails is skipped so the
+ * others still show.
+ */
+export async function getAllOpportunities(): Promise<EnrichedOpportunity[]> {
+  return cachedOpportunities();
 }
 
 export async function getOpportunityById(id: string): Promise<EnrichedOpportunity | null> {

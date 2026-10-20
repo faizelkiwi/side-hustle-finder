@@ -28,6 +28,7 @@ export function AuthSync() {
       if (loadingFor === userId) return;
       loadingFor = userId;
       const store = useSavedOpportunitiesStore;
+      const loadStartedAt = new Date().toISOString();
       try {
         if (!store.persist.hasHydrated()) await store.persist.rehydrate();
         const { saved: local, userId: localOwner } = store.getState();
@@ -37,6 +38,17 @@ export function AuthSync() {
         // belonging to the same account is ignored in favour of the database,
         // so removals made on another device are respected.
         const toUpload = localOwner === null ? Object.values(local).filter((m) => !remote[m.opportunityId]) : [];
+        // Saves made while the account was still loading would otherwise be
+        // overwritten by the fetched list, so keep and upload those too.
+        for (const meta of Object.values(store.getState().saved)) {
+          if (
+            meta.savedAt >= loadStartedAt &&
+            !remote[meta.opportunityId] &&
+            !toUpload.some((m) => m.opportunityId === meta.opportunityId)
+          ) {
+            toUpload.push(meta);
+          }
+        }
         await upsertSavedOpportunities(userId, toUpload);
 
         const merged = { ...remote };

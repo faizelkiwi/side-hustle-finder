@@ -13,6 +13,7 @@ export function applyFilters(opportunities: EnrichedOpportunity[], filters: Oppo
   const keyword = filters.keyword.trim().toLowerCase();
 
   let result = opportunities.filter((o) => {
+    if (filters.kind !== "all" && o.kind !== filters.kind) return false;
     if (keyword) {
       const haystack = `${o.title} ${o.company} ${o.description} ${o.skills.join(" ")}`.toLowerCase();
       if (!haystack.includes(keyword)) return false;
@@ -22,7 +23,8 @@ export function applyFilters(opportunities: EnrichedOpportunity[], filters: Oppo
     if (filters.city !== "all" && o.city !== filters.city) return false;
     if (filters.source !== "all" && o.sourceName !== filters.source) return false;
     if (filters.experience !== "any" && o.experienceLevel !== EXPERIENCE_MAP[filters.experience]) return false;
-    if (filters.postedWithinDays > 0 && !isWithinDays(o.datePosted, filters.postedWithinDays)) return false;
+    // Platforms are always open, so the "posted within" filter doesn't apply to them.
+    if (filters.postedWithinDays > 0 && o.kind !== "platform" && !isWithinDays(o.datePosted, filters.postedWithinDays)) return false;
     if (o.startupCostZAR > filters.maxStartupCost) return false;
     if (o.trustScore < filters.minTrustScore) return false;
     if (filters.remoteOnly && o.workMode !== "Remote") return false;

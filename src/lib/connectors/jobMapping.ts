@@ -2,11 +2,11 @@ import type { ExperienceLevel, Opportunity, OpportunityCategory, PaymentType, Sc
 
 // Shared helpers for turning public job-board feeds into Opportunity records.
 
-/** Fetch a feed, cached for an hour so page views don't hit the job boards directly. */
+/** Fetch a feed, cached for 10 minutes so page views don't hit the job boards directly. */
 export async function fetchFeed<T>(url: string): Promise<T> {
   const res = await fetch(url, {
     headers: { "user-agent": "SideHustleFinder/1.0 (+https://side-hustle-finder-wine.vercel.app)", accept: "application/json" },
-    next: { revalidate: 3600 },
+    next: { revalidate: 600 },
   });
   if (!res.ok) throw new Error(`${url} responded ${res.status}`);
   return (await res.json()) as T;
@@ -14,7 +14,12 @@ export async function fetchFeed<T>(url: string): Promise<T> {
 
 // Approximate conversion so pay can be compared in rand. Only used for
 // ranking and filtering; the listing's own currency is always shown too.
-const TO_ZAR: Record<string, number> = { USD: 18, EUR: 20, GBP: 23, ZAR: 1 };
+const TO_ZAR: Record<string, number> = {
+  USD: 18, EUR: 20, GBP: 23, ZAR: 1, AUD: 12, CAD: 13, NZD: 11, SGD: 14, HKD: 2.3, INR: 0.21, PHP: 0.31,
+};
+
+// Hourly side-hustle work is assumed to be about 10 hours a week.
+const SIDE_HUSTLE_HOURS_PER_MONTH = 40;
 
 const OPEN_TO_SA = /\b(worldwide|anywhere|global(ly)?|international|emea|africa|south africa)\b/i;
 
@@ -79,26 +84,40 @@ export function inferExperience(title: string): ExperienceLevel {
   return "Intermediate";
 }
 
-/** Earnings text plus a normalised monthly ZAR range from a salary range. */
+/**
+ * Earnings text in the listing's own currency, plus a normalised ZAR range
+ * used for ranking and filters. "fixed" is a one-off project budget; hourly
+ * pay is scaled to a side-hustle month of ~40 hours.
+ */
 export function earnings(
   min: number | null | undefined,
   max: number | null | undefined,
   currency = "USD",
-  period: "yearly" | "monthly" | "hourly" = "yearly",
+  period: "yearly" | "monthly" | "hourly" | "fixed" = "yearly",
 ): { earningPotential: string; earningPotentialMonthlyZAR: [number, number]; paymentType: PaymentType } {
   const lo = Number(min) || 0;
   const hi = Number(max) || lo;
-  const rate = TO_ZAR[currency.toUpperCase()];
-  if (!hi || !rate) {
-    return { earningPotential: "Pay not stated - see listing", earningPotentialMonthlyZAR: [0, 0], paymentType: "Salary" };
+  const code = currency.toUpperCase();
+  const paymentType: PaymentType = period === "hourly" ? "Hourly" : period === "fixed" ? "Fixed Fee" : "Salary";
+  if (!hi) return { earningPotential: "Pay not stated - see listing", earningPotentialMonthlyZAR: [0, 0], paymentType };
+
+  let money: (n: number) => string;
+  try {
+    const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: code, maximumFractionDigits: 0 });
+    money = (n) => fmt.format(n);
+  } catch {
+    money = (n) => `${code} ${Math.round(n).toLocaleString("en-US")}`;
   }
-  const perMonth = period === "yearly" ? 1 / 12 : period === "hourly" ? 160 : 1;
-  const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase(), maximumFractionDigits: 0 });
-  const unit = period === "yearly" ? "year" : period === "hourly" ? "hour" : "month";
+  const unit = { yearly: " / year", monthly: " / month", hourly: " / hour", fixed: " fixed price" }[period];
+  const earningPotential = `${money(lo)}${hi !== lo ? ` - ${money(hi)}` : ""}${unit}`;
+
+  const rate = TO_ZAR[code];
+  if (!rate) return { earningPotential, earningPotentialMonthlyZAR: [0, 0], paymentType };
+  const perMonth = { yearly: 1 / 12, monthly: 1, hourly: SIDE_HUSTLE_HOURS_PER_MONTH, fixed: 1 }[period];
   return {
-    earningPotential: `${fmt.format(lo)}${hi !== lo ? ` - ${fmt.format(hi)}` : ""} / ${unit}`,
+    earningPotential,
     earningPotentialMonthlyZAR: [Math.round(lo * perMonth * rate), Math.round(hi * perMonth * rate)],
-    paymentType: period === "hourly" ? "Hourly" : "Salary",
+    paymentType,
   };
 }
 
@@ -122,14 +141,14 @@ export function remoteJobDefaults(): Pick<
   return { city: null, workMode: "Remote", startupCostZAR: 0, dateDiscovered: now, lastChecked: now, isActive: true, weekend: false, evening: false };
 }
 
-const LINK_CHECK_TTL_MS = 60 * 60 * 1000;
+const LINK_CHECK_TTL_MS = 10 * 60 * 1000;
 const linkChecks = new Map<string, { live: boolean; checkedAt: number }>();
 
 /**
  * Whether a job page is still up: not 404/410 and not redirected to the
  * site's home page (what job boards do when a post is removed). Network
  * errors and timeouts count as live so a slow site doesn't hide its jobs.
- * Results are remembered for an hour.
+ * Results are remembered for 10 minutes (the refresh interval).
  */
 async function isLinkLive(url: string): Promise<boolean> {
   const cached = linkChecks.get(url);
@@ -140,7 +159,7 @@ async function isLinkLive(url: string): Promise<boolean> {
       redirect: "follow",
       cache: "no-store",
       headers: { "user-agent": "Mozilla/5.0 (compatible; SideHustleFinder/1.0; link check)", accept: "text/html" },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(5000),
     });
     await res.body?.cancel();
     const landedOnHome = new URL(res.url).pathname.replace(/\/+$/, "") === "" && new URL(url).pathname.replace(/\/+$/, "") !== "";
@@ -152,12 +171,12 @@ async function isLinkLive(url: string): Promise<boolean> {
   return live;
 }
 
-/** Drops listings whose job page has been removed. Checks run 8 at a time. */
+/** Drops listings whose page has been removed. Checks run in parallel (up to 64 at once) so a full rebuild takes seconds. */
 export async function keepLiveListings<T extends { sourceUrl: string | null }>(listings: T[]): Promise<T[]> {
   const live = new Array<boolean>(listings.length).fill(false);
   let next = 0;
   await Promise.all(
-    Array.from({ length: Math.min(8, listings.length) }, async () => {
+    Array.from({ length: Math.min(64, listings.length) }, async () => {
       for (let i = next++; i < listings.length; i = next++) {
         live[i] = listings[i].sourceUrl ? await isLinkLive(listings[i].sourceUrl!) : false;
       }

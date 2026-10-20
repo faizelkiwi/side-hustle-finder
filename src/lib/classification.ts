@@ -56,7 +56,8 @@ export function computeOpportunityScore(opportunity: Opportunity): number {
     0,
     (Date.now() - new Date(opportunity.datePosted).getTime()) / (1000 * 60 * 60 * 24),
   );
-  const recencyScore = Math.max(0, 100 - daysSincePosted * 2.5);
+  // Platforms are always open, so they don't age like dated listings.
+  const recencyScore = opportunity.kind === "platform" ? 100 : Math.max(0, 100 - daysSincePosted * 2.5);
 
   const activeScore = opportunity.isActive ? 100 : 0;
 

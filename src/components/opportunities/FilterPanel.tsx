@@ -1,7 +1,7 @@
 "use client";
 
 import { ALL_CATEGORIES } from "@/lib/categories";
-import { SORT_OPTIONS, type OpportunityFilters, type SortOption } from "./types";
+import { KIND_FILTER_OPTIONS, SORT_OPTIONS, type KindFilter, type OpportunityFilters, type SortOption } from "./types";
 
 const EXPERIENCE_OPTIONS = [
   { value: "any", label: "Any experience level" },
@@ -55,6 +55,21 @@ function ToggleChip({
 export function FilterPanel({ filters, onChange, onReset, countries, cities, sources }: FilterPanelProps) {
   return (
     <div className="space-y-5 rounded-xl border border-border bg-white p-4 shadow-sm">
+      <div>
+        <label className="text-xs font-medium text-muted">Type of side hustle</label>
+        <select
+          value={filters.kind}
+          onChange={(e) => onChange({ kind: e.target.value as KindFilter })}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        >
+          {KIND_FILTER_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div>
         <label className="text-xs font-medium text-muted">Keyword</label>
         <input

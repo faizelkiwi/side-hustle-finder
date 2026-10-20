@@ -10,7 +10,7 @@ import { FilterPanel } from "@/components/opportunities/FilterPanel";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { applyFilters } from "./applyFilters";
-import { SORT_OPTIONS, defaultFilters, isSortOption, type SortOption } from "./types";
+import { SORT_OPTIONS, defaultFilters, isKindFilter, isSortOption, type KindFilter, type SortOption } from "./types";
 
 const PAGE_SIZE = 9;
 
@@ -18,9 +18,11 @@ export function OpportunityExplorer({ opportunities }: { opportunities: Enriched
   const searchParams = useSearchParams();
   const sortParam = searchParams.get("sort");
   const initialSort: SortOption = isSortOption(sortParam) ? sortParam : "newest";
+  const typeParam = searchParams.get("type");
+  const initialKind: KindFilter = isKindFilter(typeParam) ? typeParam : "all";
 
   const [filters, setFilters] = useState(() =>
-    defaultFilters({ sort: initialSort, maxStartupCost: useSettingsStore.getState().startupCostThresholdZAR }),
+    defaultFilters({ sort: initialSort, kind: initialKind, maxStartupCost: useSettingsStore.getState().startupCostThresholdZAR }),
   );
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);

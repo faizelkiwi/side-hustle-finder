@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, BookmarkCheck, ExternalLink, MapPin, Wifi, Clock, CalendarClock } from "lucide-react";
-import type { EnrichedOpportunity } from "@/lib/types";
+import { Bookmark, BookmarkCheck, ExternalLink, MapPin, Wifi, Clock, CalendarClock, CalendarCheck } from "lucide-react";
+import { OPPORTUNITY_KIND_LABELS, type EnrichedOpportunity, type OpportunityKind } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useToggleSave } from "@/components/account/useToggleSave";
 import { useSettingsStore, formatCurrencyFromZAR } from "@/lib/store/settings";
-import { formatDateTime, formatRelativeDate, getExternalUrl, isNew, isWithinDays } from "@/lib/format";
+import { formatDate, formatDateTime, formatRelativeDate, getExternalUrl, isNew, isWithinDays } from "@/lib/format";
 import { CategoryBadge, CostTierBadge, RiskBadge, ScoreBadge } from "@/components/ui/Badges";
 
 export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportunity }) {
@@ -25,9 +25,19 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
             </h3>
           </Link>
           <p className="mt-0.5 truncate text-xs text-muted">
-            {opportunity.company} · via <span className="font-medium text-gray-600">{opportunity.sourceName}</span>
+            {opportunity.kind === "platform" ? (
+              <span className="font-medium text-gray-600">{opportunity.company}</span>
+            ) : (
+              <>
+                {opportunity.company} · via <span className="font-medium text-gray-600">{opportunity.sourceName}</span>
+              </>
+            )}
           </p>
-          <PostedDate iso={opportunity.datePosted} />
+          {opportunity.kind === "platform" ? (
+            <AlwaysOpen iso={opportunity.datePosted} checked={opportunity.lastChecked} />
+          ) : (
+            <PostedDate iso={opportunity.datePosted} />
+          )}
         </div>
         <button
           onClick={() => (limitReached ? router.push("/billing") : toggle())}
@@ -40,6 +50,7 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
+        <KindBadge kind={opportunity.kind} />
         <CategoryBadge category={opportunity.category} />
         <RiskBadge level={opportunity.riskLevel} />
         <CostTierBadge tier={opportunity.startupCostTier} />
@@ -99,12 +110,40 @@ export function OpportunityCard({ opportunity }: { opportunity: EnrichedOpportun
               rel="noopener"
               className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-brand-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
             >
-              View <ExternalLink size={12} />
+              {ACTION_LABELS[opportunity.kind]} <ExternalLink size={12} />
             </a>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+const ACTION_LABELS: Record<OpportunityKind, string> = { platform: "Join", gig: "View gig", role: "Apply" };
+
+const KIND_STYLES: Record<OpportunityKind, string> = {
+  platform: "bg-brand-600 text-white",
+  gig: "bg-warning-50 text-warning-700",
+  role: "bg-gray-100 text-gray-700",
+};
+
+function KindBadge({ kind }: { kind: OpportunityKind }) {
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${KIND_STYLES[kind]}`}>
+      {OPPORTUNITY_KIND_LABELS[kind]}
+    </span>
+  );
+}
+
+/** Platforms have no posting date: they're always open. The link is re-checked every 10 minutes. */
+function AlwaysOpen({ iso, checked }: { iso: string; checked: string }) {
+  return (
+    <p className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-gray-700">
+      <CalendarCheck size={13} className="mt-px shrink-0 text-success-500" />
+      <time dateTime={iso} suppressHydrationWarning>
+        Always open · link checked {formatDate(checked)}
+      </time>
+    </p>
   );
 }
 
@@ -114,14 +153,14 @@ function PostedDate({ iso }: { iso: string }) {
   const absolute = formatDateTime(iso);
   const label = isWithinDays(iso, 7) ? `${formatRelativeDate(iso)} · ${absolute}` : absolute;
   return (
-    <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs font-medium text-gray-700">
-      <CalendarClock size={13} className="shrink-0 text-brand-600" />
+    <p className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-gray-700">
+      <CalendarClock size={13} className="mt-px shrink-0 text-brand-600" />
       {/* Relative time depends on the viewer's clock, so server and browser can differ by a minute. */}
       <time dateTime={iso} suppressHydrationWarning>
         Posted {label}
       </time>
       {isNew(iso) && (
-        <span className="rounded-full bg-success-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success-700">
+        <span className="shrink-0 rounded-full bg-success-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success-700">
           New
         </span>
       )}

@@ -52,6 +52,8 @@ export type OpportunityCategory =
   | "Consulting"
   | "Administrative Work"
   | "Automotive Side Jobs"
+  | "Online Selling"
+  | "Hosting & Rentals"
   | "Remote Jobs"
   | "Other";
 
@@ -60,8 +62,22 @@ export interface ScamSignal {
   detail: string;
 }
 
+/**
+ * platform: a side-hustle platform you can join any time (links to its sign-up page).
+ * gig: a live, one-off paid task/project you can bid on now.
+ * role: a part-time, freelance or contract remote role.
+ */
+export type OpportunityKind = "platform" | "gig" | "role";
+
+export const OPPORTUNITY_KIND_LABELS: Record<OpportunityKind, string> = {
+  platform: "Platform · join anytime",
+  gig: "Live gig",
+  role: "Part-time / contract role",
+};
+
 export interface Opportunity {
   id: string;
+  kind: OpportunityKind;
   title: string;
   company: string;
   category: OpportunityCategory;

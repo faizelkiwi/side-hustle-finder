@@ -1,3 +1,5 @@
+import type { OpportunityKind } from "@/lib/types";
+
 export type SortOption = "relevant" | "newest" | "oldest" | "lowest-cost" | "highest-income" | "highest-trust";
 
 export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
@@ -12,7 +14,20 @@ export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 export const isSortOption = (value: string | null): value is SortOption =>
   SORT_OPTIONS.some((o) => o.value === value);
 
+export type KindFilter = "all" | OpportunityKind;
+
+export const KIND_FILTER_OPTIONS: { value: KindFilter; label: string }[] = [
+  { value: "all", label: "All side hustles" },
+  { value: "platform", label: "Platforms you can join" },
+  { value: "gig", label: "Live gigs" },
+  { value: "role", label: "Part-time / contract roles" },
+];
+
+export const isKindFilter = (value: string | null): value is KindFilter =>
+  KIND_FILTER_OPTIONS.some((o) => o.value === value);
+
 export interface OpportunityFilters {
+  kind: KindFilter;
   keyword: string;
   category: string;
   country: string;
@@ -34,6 +49,7 @@ export interface OpportunityFilters {
 
 export function defaultFilters(overrides?: Partial<OpportunityFilters>): OpportunityFilters {
   return {
+    kind: "all",
     keyword: "",
     category: "all",
     country: "all",
